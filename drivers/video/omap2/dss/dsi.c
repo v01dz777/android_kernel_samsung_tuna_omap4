@@ -2807,16 +2807,12 @@ static void dsi_vc_initial_config(struct platform_device *dsidev, int channel)
 	r = FLD_MOD(r, 1, 8, 8); /* ECC_TX_EN */
 	r = FLD_MOD(r, 0, 9, 9); /* MODE_SPEED, high speed on/off */
 	if (dss_has_feature(FEAT_DSI_VC_OCP_WIDTH))
-		r = FLD_MOD(r, 3, 11, 10); /* OCP_WIDTH = 32 bit */
-
-	/* TO DO: This is a HACK as performing this command on blaze
-	 * causes DSI errors and does not allow blaze to display anything
-	 * for now cause it to skip on blaze but allow this on tablet video
-	 * displays */
-	if (!omap_is_board_version(OMAP4_BLAZE)) {
-		if (channel == 0)
-			r = FLD_MOD(r, 1, 11, 10); /* OCP_WIDTH = 32 bit */
-	}
+		r = FLD_MOD(r, 3, 11, 10);	/* OCP_WIDTH = 32 bit */
+/* TODO: This breaks DSI on Blaze: figure out what is the righ fix */
+#if 0
+	if (channel == 0)
+		r = FLD_MOD(r, 1, 11, 10);	/* OCP_WIDTH = 32 bit */
+#endif
 
 	r = FLD_MOD(r, 4, 29, 27); /* DMA_RX_REQ_NB = no dma */
 	r = FLD_MOD(r, 4, 23, 21); /* DMA_TX_REQ_NB = no dma */
