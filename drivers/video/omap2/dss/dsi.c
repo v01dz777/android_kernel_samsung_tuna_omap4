@@ -2807,12 +2807,9 @@ static void dsi_vc_initial_config(struct platform_device *dsidev, int channel)
 	r = FLD_MOD(r, 1, 8, 8); /* ECC_TX_EN */
 	r = FLD_MOD(r, 0, 9, 9); /* MODE_SPEED, high speed on/off */
 	if (dss_has_feature(FEAT_DSI_VC_OCP_WIDTH))
-		r = FLD_MOD(r, 3, 11, 10);	/* OCP_WIDTH = 32 bit */
-/* TODO: This breaks DSI on Blaze: figure out what is the righ fix */
-#if 0
+		r = FLD_MOD(r, 3, 11, 10);      /* OCP_WIDTH = 32 bit */
 	if (channel == 0)
-		r = FLD_MOD(r, 1, 11, 10);	/* OCP_WIDTH = 32 bit */
-#endif
+		r = FLD_MOD(r, 1, 11, 10);      /* OCP_WIDTH = 32 bit */
 
 	r = FLD_MOD(r, 4, 29, 27); /* DMA_RX_REQ_NB = no dma */
 	r = FLD_MOD(r, 4, 23, 21); /* DMA_TX_REQ_NB = no dma */
@@ -3011,13 +3008,8 @@ int dsi_vc_send_bta_sync(struct omap_dss_device *dssdev, int channel)
 {
 	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
 	DECLARE_COMPLETION_ONSTACK(completion);
-	int r = 0;
+	int r = 0, i = 0;
 	u32 err;
-
-	r = dsi_register_isr_vc(dsidev, channel, dsi_completion_handler,
-			&completion, DSI_VC_IRQ_BTA);
-	if (r)
-		goto err0;
 
 	r = dsi_register_isr(dsidev, dsi_completion_handler, &completion,
 			DSI_IRQ_ERROR_MASK);
@@ -3026,29 +3018,32 @@ int dsi_vc_send_bta_sync(struct omap_dss_device *dssdev, int channel)
 
 	r = dsi_vc_send_bta(dsidev, channel);
 	if (r)
-		goto err2;
+		goto err1;
 
-	if (wait_for_completion_timeout(&completion,
-				msecs_to_jiffies(500)) == 0) {
-		DSSERR("Failed to receive BTA\n");
-		r = -EIO;
-		goto err2;
+	/* wait for BTA ACK */
+	while (i < 500) {
+		if (REG_GET(dsidev, DSI_VC_IRQSTATUS(channel), 5, 5)) {
+			DSSDBG("BTA recieved\n");
+			REG_FLD_MOD(dsidev, DSI_VC_IRQSTATUS(channel), 1, 5, 5);
+			break;
+		}
+		i++;
+		mdelay(1);
 	}
+
+	if (i >= 500)
+		DSSERR("sending BTA failed\n");
 
 	err = dsi_get_errors(dsidev);
 	if (err) {
 		DSSERR("Error while sending BTA: %x\n", err);
 		r = -EIO;
-		goto err2;
 	}
-err2:
+
+err1:
 	dsi_unregister_isr(dsidev, dsi_completion_handler, &completion,
 			DSI_IRQ_ERROR_MASK);
-err1:
-	dsi_unregister_isr_vc(dsidev, channel, dsi_completion_handler,
-			&completion, DSI_VC_IRQ_BTA);
-err0:
-	return r;
+	return 0;
 }
 
 
@@ -3146,7 +3141,6 @@ static int dsi_vc_send_long(struct platform_device *dsidev, int channel,
 		dsi_vc_write_long_payload(dsidev, channel, b1, b2, b3, 0);
 	}
 
-#ifndef CONFIG_MACH_TUNA
 	/* wait for IRQ for long packet transmission confirmation */
 	for (i = 0; i < 1000; i++) {
 		u32 val;
@@ -3160,7 +3154,6 @@ static int dsi_vc_send_long(struct platform_device *dsidev, int channel,
 	}
 
 	DSSERR("long packet send failed\n");
-#endif
 
 	return r;
 }
@@ -3339,11 +3332,7 @@ int dsi_vc_dcs_read(struct omap_dss_device *dssdev, int channel, u8 dcs_cmd,
 		buf[1] = (data >> 8) & 0xff;
 
 		return 2;
-#ifdef CONFIG_MACH_TUNA
-	} else if (dt == DSI_DT_RX_DCS_LONG_READ || dt == DSI_DT_RX_LONG_READ) {
-#else
 	} else if (dt == DSI_DT_RX_DCS_LONG_READ) {
-#endif
 		int w;
 		int len = FLD_GET(val, 23, 8);
 		if (dsi->debug_read)
@@ -3494,7 +3483,7 @@ int dsi_vc_gen_read_2(struct omap_dss_device *dssdev, int channel, u16 cmd,
 	int r;
 
 	if (dsi->debug_read)
-		DSSDBG("%s(ch%d, cmd %x)\n", __func__, channel, cmd);
+		DSSDBG("dsi_vc_dcs_read(ch%d, dcs_cmd %x)\n", channel, cmd);
 
 	r = dsi_vc_send_short(dsidev, channel, DSI_DT_GENERIC_READ_2, cmd, 0);
 	if (r)
@@ -3588,8 +3577,8 @@ int dsi_vc_gen_read_2(struct omap_dss_device *dssdev, int channel, u16 cmd,
 
 	BUG();
 err:
-	DSSERR("%s(ch %d, cmd 0x%02x) failed\n",
-			__func__, channel, cmd);
+	DSSERR("dsi_vc_dcs_read(ch %d, cmd 0x%02x) failed\n",
+			channel, cmd);
 	return r;
 
 }
@@ -4006,13 +3995,6 @@ int dsi_video_mode_enable(struct omap_dss_device *dssdev, u8 data_type)
 	dsi_write_reg(dsidev, DSI_VC_CTRL(0), r);
 	dsi_write_reg(dsidev, DSI_VC_CTRL(0) , 0x20800790);
 
-#ifdef CONFIG_MACH_TUNA
-	r = dsi_read_reg(dsidev, DSI_VC_CTRL(1));
-	r = FLD_MOD(r, 0, 4, 4);
-	r = FLD_MOD(r, 1, 9, 9);
-	dsi_write_reg(dsidev, DSI_VC_CTRL(1), r);
-#endif
-
 	word_count = dssdev->panel.timings.x_res * dssdev->ctrl.pixel_size / 8;
 	header = FLD_VAL(0, 31, 24) | /* ECC */
 		FLD_VAL(word_count, 23, 8) | /* WORD_COUNT */
@@ -4020,9 +4002,6 @@ int dsi_video_mode_enable(struct omap_dss_device *dssdev, u8 data_type)
 		FLD_VAL(data_type, 5, 0);
 	dsi_write_reg(dsidev, DSI_VC_LONG_PACKET_HEADER(0), header);
 
-#ifdef CONFIG_MACH_TUNA
-	dsi_vc_enable(dsidev, 1, true);
-#endif
 	dsi_vc_enable(dsidev, 0, true);
 	dsi_if_enable(dsidev, true);
 
@@ -4762,13 +4741,10 @@ int omapdss_dsi_display_enable(struct omap_dss_device *dssdev)
 	if(!dssdev->skip_init)
 		dsi_enable_pll_clock(dsidev, 1);
 
-#ifndef CONFIG_MACH_TUNA
+	/* Soft reset */
 	REG_FLD_MOD(dsidev, DSI_SYSCONFIG, 1, 1, 1);
 	_dsi_wait_reset(dsidev);
 
-	/* ENWAKEUP */
-	REG_FLD_MOD(dsidev, DSI_SYSCONFIG, 1, 2, 2);
-#endif
 
 	_dsi_initialize_irq(dsidev);
 
@@ -5177,10 +5153,42 @@ void dsi_uninit_platform_driver(void)
 	return platform_driver_unregister(&omap_dsi1hw_driver);
 }
 
-/* set extra videomode settings */
+
+
+
+/* set extra register hardcoding values for now (according to kozio) */
 void dsi_videomode_panel_preinit(struct omap_dss_device *dssdev)
 {
 	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
+
+	dsi_vc_enable(dsidev, 0, false);
+	dsi_vc_enable(dsidev, 1, false);
+	dsi_if_enable(dsidev, false);
+
+	/* configure timings */
+	dsi_write_reg(dsidev, DSI_VM_TIMING1, 0x010D301A);   /* HSA=1, HFP=211, HBP=26 */
+	dsi_write_reg(dsidev, DSI_VM_TIMING2, 0x04080F0F);   /* WINDOW_SIZE=4, VSA=8, VFP=15, VBP=15 */
+	dsi_write_reg(dsidev, DSI_VM_TIMING3, 0x04B00320);	 /* TL(31:16)=1200, VACT(15:0)=800 */
+
+	dsi_write_reg(dsidev, DSI_VM_TIMING4, 0x00487296);   /* HSA_HS_INTERLEAVING(23:16)=72, HFP_HS_INTERLEAVING(15:8)=114, HBP_HS_INTERLEAVING(7:0)=150 */
+	dsi_write_reg(dsidev, DSI_VM_TIMING5, 0x0082DF3B);   /* VC3_FIFO_EMPTINESS, VC2_FIFO_EMPTINESS, VC1_FIFO_EMPTINESS, VC0_FIFO_EMPTINESS */
+	dsi_write_reg(dsidev, DSI_VM_TIMING6, 0x7A6731D1);   /* HSA_LP_INTERLEAVING(23:16)=103, HFP_HS_INTERLEAVING(15:8)=49, HBP_HS_INTERLEAVING(7:0)=209 */
+	dsi_write_reg(dsidev, DSI_VM_TIMING7, 0x000E0013);   /* BL_HS_INTERLEAVING(23:16)=14, BL_LP_INTERLEAVING(15:0)=19 */
+
+
+	/* set TA_TO_COUNTER accordignly to kozio value(???) */
+	/* enable TA_TO and set it to max */
+	/* disable stop_mode but set it to max */
+	/* dsi_write_reg(dsidev, DSI_TIMING1, 0xFFFF7FFF) */
+
+	/* set TA_TO_COUNTER accordignly to kozio value(???) */
+	/* disable LP_RX_TO but set it to max */
+	/* enable HS_TX_TO and set it to max */
+	/* dsi_write_reg(dsidev, DSI_TIMING2, 0xFFFF7FFF) */
+
+	dsi_vc_enable(dsidev, 1, true);
+	dsi_vc_enable(dsidev, 0, true);
+	dsi_if_enable(dsidev, true);
 
 	/* Send null packet to start DDR clock  */
 	dsi_write_reg(dsidev, DSI_VC_SHORT_PACKET_HEADER(0), 0);
