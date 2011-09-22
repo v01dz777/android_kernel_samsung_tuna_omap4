@@ -1432,8 +1432,8 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"ADC Right", NULL, "MicAmpR"},
 
 	/* AFM path */
-	{"AFMAmpL", "NULL", "AFML"},
-	{"AFMAmpR", "NULL", "AFMR"},
+	{"AFMAmpL", NULL, "AFML"},
+	{"AFMAmpR", NULL, "AFMR"},
 
 	{"Headset Left Playback", "HS DAC", "HSDAC Left"},
 	{"Headset Left Playback", "Line-In amp", "AFMAmpL"},
@@ -1441,8 +1441,8 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"Headset Right Playback", "HS DAC", "HSDAC Right"},
 	{"Headset Right Playback", "Line-In amp", "AFMAmpR"},
 
-	{"Headset Left Driver", "NULL", "Headset Left Playback"},
-	{"Headset Right Driver", "NULL", "Headset Right Playback"},
+	{"Headset Left Driver", NULL, "Headset Left Playback"},
+	{"Headset Right Driver", NULL, "Headset Right Playback"},
 
 	{"HSOL", NULL, "Headset Left Driver"},
 	{"HSOR", NULL, "Headset Right Driver"},
