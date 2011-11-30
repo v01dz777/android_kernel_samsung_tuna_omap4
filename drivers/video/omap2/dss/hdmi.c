@@ -652,28 +652,6 @@ ssize_t omapdss_hdmi_get_edid(char *edid_buffer)
 	return size;
 }
 
-void omapdss_hdmi_set_s3d_mode(int val)
-{
-	hdmi.s3d_mode = val;
-}
-
-int omapdss_hdmi_get_s3d_mode(void)
-{
-	return hdmi.s3d_mode;
-}
-
-void omapdss_hdmi_enable_s3d(bool enable)
-{
-	hdmi.s3d_enable = enable;
-	if (hdmi.enabled)
-		omapdss_hdmi_display_set_timing(hdmi.dssdev);
-}
-
-int omapdss_hdmi_get_s3d_enable(void)
-{
-	return hdmi.s3d_enable;
-}
-
 int hdmi_get_current_hpd()
 {
 	return gpio_get_value(hdmi.dssdev->hpd_gpio);
