@@ -62,7 +62,6 @@ static ssize_t hdmi_edid_show(struct device *dev,
 	return omapdss_hdmi_get_edid(buf);
 }
 
-<<<<<<< HEAD
 static ssize_t hdmi_s3d_mode_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -153,6 +152,13 @@ static DEVICE_ATTR(s3d_enable, S_IRUGO | S_IWUSR, hdmi_s3d_enable_show,
 							hdmi_s3d_enable_store);
 static DEVICE_ATTR(s3d_type, S_IRUGO | S_IWUSR, hdmi_s3d_mode_show,
 							hdmi_s3d_mode_store);
+static DEVICE_ATTR(edid, S_IRUGO, hdmi_edid_show, NULL);
+static DEVICE_ATTR(deepcolor, S_IRUGO | S_IWUSR, hdmi_deepcolor_show,
+							hdmi_deepcolor_store);
+
+static struct attribute *hdmi_panel_attrs[] = {
+	&dev_attr_s3d_enable.attr,
+	&dev_attr_s3d_type.attr,
 	&dev_attr_edid.attr,
 	&dev_attr_deepcolor.attr,
 	NULL,
