@@ -3858,7 +3858,7 @@ static int dsi_cmd_proto_config(struct omap_dss_device *dssdev)
 
 static int dispc_to_dsi_clock(int val, int pixel_size, int lanes)
 {
-	return (val * bytes_per_pixel) / lanes;
+	return (val * pixel_size / 8) / lanes;
 }
 
 static int dsi_video_proto_config(struct omap_dss_device *dssdev)
@@ -3867,7 +3867,6 @@ static int dsi_video_proto_config(struct omap_dss_device *dssdev)
 	struct omap_video_timings *timings = &dssdev->panel.timings;
 	int buswidth = 0;
 	u32 r;
-	int bytes_per_pixel;
 	int hbp, hfp, hsa, tl, line;
 	int lanes;
 
@@ -3930,15 +3929,16 @@ static int dsi_video_proto_config(struct omap_dss_device *dssdev)
 	lanes = dsi_get_num_data_lanes_dssdev(dssdev);
 
 	hbp = dispc_to_dsi_clock((timings->hsw - 1) + (timings->hbp - 1),
-				bytes_per_pixel, lanes);
-	hfp = dispc_to_dsi_clock(timings->hfp - 1, bytes_per_pixel, lanes);
+				dssdev->ctrl.pixel_size, lanes);
+	hfp = dispc_to_dsi_clock(timings->hfp - 1,
+		dssdev->ctrl.pixel_size, lanes);
 	hsa = 0;
 
 	line = timings->hbp + timings->hfp + timings->hsw + timings->x_res;
-	WARN((line * bytes_per_pixel) % lanes != 0, "TL should be an exact "
+	WARN((line * dssdev->ctrl.pixel_size / 8) % lanes != 0, "TL should be an exact "
 			"integer, try changing DISPC horizontal blanking parameters");
 
-	tl =  dispc_to_dsi_clock(line, bytes_per_pixel, lanes);
+	tl =  dispc_to_dsi_clock(line, dssdev->ctrl.pixel_size, lanes);
 
 	r = dsi_read_reg(dsidev, DSI_VM_TIMING1);
 	r = FLD_MOD(r, hbp, 11, 0);   /* HBP */
