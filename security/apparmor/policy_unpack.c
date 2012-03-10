@@ -96,13 +96,12 @@ static int audit_iface(struct aa_profile *new, const char *name,
 	struct common_audit_data sa;
 	struct apparmor_audit_data aad = {0,};
 	COMMON_AUDIT_DATA_INIT(&sa, NONE);
-	sa.aad = &aad;
 	if (e)
-		aad.iface.pos = e->pos - e->start;
-	aad.iface.target = new;
-	aad.name = name;
-	aad.info = info;
-	aad.error = error;
+		sa.aad.iface.pos = e->pos - e->start;
+	sa.aad.iface.target = new;
+	sa.aad.name = name;
+	sa.aad.info = info;
+	sa.aad.error = error;
 
 	return aa_audit(AUDIT_APPARMOR_STATUS, profile, GFP_KERNEL, &sa,
 			audit_cb);
