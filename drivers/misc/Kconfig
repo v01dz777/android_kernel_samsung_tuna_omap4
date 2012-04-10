@@ -649,4 +649,10 @@ config MAX17040_BATTERY_RESERVE
 	  for a lower critical battery voltage.
 	  "echo 1 > /sys/battery_reserve/enabled" to enable.
 
+config BLX
+	bool "Support for Battery Life eXtender"
+	default y
+	help
+		Say Y here to enable Battery Life eXtender
+
 endif # MISC_DEVICES
