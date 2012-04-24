@@ -302,6 +302,22 @@ void hdmi_inform_power_on_to_cec(int status)
 		(*hdmi.hdmi_cec_enable_cb)(status);
 }
 
+void hdmi_inform_hpd_to_cec(int status)
+{
+	if (!status)
+		hdmi.source_physical_address = 0;
+
+	if (hdmi.hdmi_cec_hpd)
+		(*hdmi.hdmi_cec_hpd)(hdmi.source_physical_address,
+			status);
+}
+
+void hdmi_inform_power_on_to_cec(int status)
+{
+	if (hdmi.hdmi_cec_enable_cb)
+		(*hdmi.hdmi_cec_enable_cb)(status);
+}
+
 u8 *hdmi_read_edid(struct omap_video_timings *dp)
 {
 	int ret = 0, i;
