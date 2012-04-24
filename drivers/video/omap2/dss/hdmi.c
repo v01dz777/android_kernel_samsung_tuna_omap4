@@ -94,6 +94,7 @@ static struct {
 
 	u8 s3d_mode;
 	bool s3d_enable;
+	int source_physical_address;
 	void (*hdmi_start_frame_cb)(void);
 	void (*hdmi_irq_cb)(int);
 	bool (*hdmi_power_on_cb)(void);
@@ -283,22 +284,6 @@ void hdmi_get_monspecs(struct fb_monspecs *specs)
 		i++;
 
 	}
-}
-
-void hdmi_inform_hpd_to_cec(int status)
-{
-	if (!status)
-		hdmi.source_physical_address = 0;
-
-	if (hdmi.hdmi_cec_hpd)
-		(*hdmi.hdmi_cec_hpd)(hdmi.source_physical_address,
-			status);
-}
-
-void hdmi_inform_power_on_to_cec(int status)
-{
-	if (hdmi.hdmi_cec_enable_cb)
-		(*hdmi.hdmi_cec_enable_cb)(status);
 }
 
 void hdmi_inform_hpd_to_cec(int status)
