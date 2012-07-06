@@ -68,3 +68,4 @@ obj-$(CONFIG_UID_CPUTIME)       += uid_cputime.o
 obj-$(CONFIG_COLOR_CONTROL)	+= color_control.o
 obj-$(CONFIG_BLX)              += blx.o
 obj-$(CONFIG_TOUCH_WAKE)       += touch_wake.o
+obj-$(CONFIG_SOUND_CONTROL)	+= sound_control.o
