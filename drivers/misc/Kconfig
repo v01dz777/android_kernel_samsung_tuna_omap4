@@ -636,10 +636,10 @@ config TOUCH_WAKE
 	help
 	  Say Y here to enable Touch Wake
 
-config COLOR_CONTROL
-	bool "Support for Color Control"
+config SOUND_CONTROL
+	bool "Enable support for Sound Control"
 	default y
 	help
-	  Say Y here to enable Color Control
+	  Enable support for Sound Control
 
 endif # MISC_DEVICES
