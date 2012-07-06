@@ -620,7 +620,7 @@ source "drivers/misc/modem_if_v2/Kconfig"
 
 config COLOR_CONTROL
 	bool "Support for Color Control"
-	default n
+	default y
 	help
 	  Say Y here to enable Color Control
 
