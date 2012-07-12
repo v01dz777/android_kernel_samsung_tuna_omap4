@@ -355,6 +355,7 @@ static int sync_fence_merge_pts(struct sync_fence *dst, struct sync_fence *src)
 					new_pt->fence = dst;
 					list_replace(&dst_pt->pt_list,
 						     &new_pt->pt_list);
+					sync_pt_activate(new_pt);
 					sync_pt_free(dst_pt);
 				}
 				collapsed = true;
@@ -370,20 +371,11 @@ static int sync_fence_merge_pts(struct sync_fence *dst, struct sync_fence *src)
 
 			new_pt->fence = dst;
 			list_add(&new_pt->pt_list, &dst->pt_list_head);
+			sync_pt_activate(new_pt);
 		}
 	}
 
 	return 0;
-}
-
-static void sync_fence_detach_pts(struct sync_fence *fence)
-{
-	struct list_head *pos, *n;
-
-	list_for_each_safe(pos, n, &fence->pt_list_head) {
-		struct sync_pt *pt = container_of(pos, struct sync_pt, pt_list);
-		sync_timeline_remove_pt(pt);
-	}
 }
 
 static void sync_fence_free_pts(struct sync_fence *fence)
