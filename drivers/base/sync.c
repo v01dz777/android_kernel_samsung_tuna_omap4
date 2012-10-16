@@ -467,12 +467,6 @@ struct sync_fence *sync_fence_merge(const char *name,
 	if (err < 0)
 		goto err;
 
-	list_for_each(pos, &fence->pt_list_head) {
-		struct sync_pt *pt =
-			container_of(pos, struct sync_pt, pt_list);
-		sync_pt_activate(pt);
-	}
-
 	/*
 	 * signal the fence in case one of it's pts were activated before
 	 * they were activated
