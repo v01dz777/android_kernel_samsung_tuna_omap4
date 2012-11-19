@@ -69,3 +69,4 @@ obj-$(CONFIG_SEC_MODEM_V2)	+= modem_if_v2/
 obj-$(CONFIG_USB_SWITCH_FSA9480)	+= fsa9480.o
 obj-$(CONFIG_COLOR_CONTROL)	+= color_control.o
 obj-$(CONFIG_BLX)              += blx.o
+obj-$(CONFIG_TOUCH_WAKE)       += touch_wake.o
