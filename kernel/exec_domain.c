@@ -68,10 +68,14 @@ lookup_exec_domain(unsigned int personality)
 				goto out;
 	}
 
-	// According to https://groups.google.com/forum/#!topic/android-porting/0e5RrrvQ2MU
-	// this is not functional anyhow, and skipping this
-	// gets rid of multiple SELinux 'denied' messages.
-#if defined(CONFIG_MODULES) && !defined(CONFIG_ANDROID)
+/*
+ * Disable the request_module here to avoid trying to
+ * load the personality-8 module, which  doesn't exist,
+ * and results in selinux audit noise.
+ * Disabling this here avoids folks adding module_request
+ * to their sepolicy, which is maybe too generous
+ */
+#if 0
 	read_unlock(&exec_domains_lock);
 	request_module("personality-%d", pers);
 	read_lock(&exec_domains_lock);
