@@ -34,10 +34,6 @@
 
 #include <asm/unaligned.h>
 
-#ifdef CONFIG_MACH_TUNA
-#include "../../../arch/arm/mach-omap2/board-tuna.h"
-#endif
-
 #define MAX_FINGERS		10
 #define MAX_WIDTH		30
 #define MAX_PRESSURE		255
@@ -739,14 +735,7 @@ static int __devinit mms_ts_config(struct mms_ts_info *info, bool nowait)
 
 	mms_pwr_on_reset(info);
 
-#ifdef CONFIG_MACH_TUNA
-	if (tuna_is_charger_mode()) {
-		const struct firmware *fw;
-		mms_ts_fw_load(fw, info);
-		ret = -EINVAL;
-		goto out;
-	}
-#endif
+	info->fw_name = kasprintf(GFP_KERNEL, "melfas/%s", filename);
 
 	if (nowait) {
 		const struct firmware *fw;
