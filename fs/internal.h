@@ -74,7 +74,7 @@ extern int finish_automount(struct vfsmount *, struct path *);
 
 extern void __init mnt_init(void);
 
-DECLARE_BRLOCK(vfsmount_lock);
+extern struct lglock vfsmount_lock;
 
 
 /*
