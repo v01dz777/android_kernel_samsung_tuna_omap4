@@ -873,7 +873,7 @@ int twl6030_get_gpadc_conversion(int channel_no)
 	if (ret < 0)
 		return ret;
 
-	if (req.rbuf[channel_no] > 0)
+	if (req.buf[channel_no].raw_code > 0)
 		temp = req.buf[channel_no].raw_code;
 
 	return temp;
