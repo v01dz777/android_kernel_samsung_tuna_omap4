@@ -868,6 +868,7 @@ int twl6030_get_gpadc_conversion(int channel_no)
 	req.method = TWL6030_GPADC_SW2;
 	req.active = 0;
 	req.func_cb = NULL;
+	req.type = TWL6030_GPADC_WAIT;
 	ret = twl6030_gpadc_conversion(&req);
 	if (ret < 0)
 		return ret;
