@@ -1757,7 +1757,9 @@ static struct snd_soc_dai_driver twl6040_dai[] = {
 #ifdef CONFIG_PM
 static int twl6040_suspend(struct snd_soc_codec *codec, pm_message_t state)
 {
-	twl6040_set_bias_level(codec, SND_SOC_BIAS_OFF);
+	if (unlikely(codec->dapm.bias_level != SND_SOC_BIAS_OFF)) {
+		twl6040_set_bias_level(codec, SND_SOC_BIAS_OFF);
+	}
 
 	return 0;
 }
