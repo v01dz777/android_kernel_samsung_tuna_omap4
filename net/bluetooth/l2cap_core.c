@@ -787,7 +787,7 @@ static void l2cap_conn_start(struct l2cap_conn *conn)
 
 			set_bit(CONF_REQ_SENT, &chan->conf_state);
 			l2cap_send_cmd(conn, l2cap_get_ident(conn), L2CAP_CONF_REQ,
-						l2cap_build_conf_req(chan, buf), buf);
+				       l2cap_build_conf_req(chan, buf, sizeof(buf)), buf);
 			chan->num_conf_req++;
 		}
 
@@ -1895,7 +1895,7 @@ static inline __u8 l2cap_select_mode(__u8 mode, __u16 remote_feat_mask)
 	}
 }
 
-static int l2cap_build_conf_req(struct l2cap_chan *chan, void *data)
+static int l2cap_build_conf_req(struct l2cap_chan *chan, void *data, size_t data_size)
 {
 	struct l2cap_conf_req *req = data;
 	struct l2cap_conf_rfc rfc = { .mode = chan->mode };
